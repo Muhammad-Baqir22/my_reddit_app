@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String           @id @default(uuid())
+  username      String        @unique
+  email         String        @unique
+  password_hash String
+  created_at    DateTime      @default(now())
+
+  subreddits    Subreddit[]   @relation("UserSubreddits")
+  posts         Post[]
+  comments      Comment[]
+  postVotes     PostVote[]
+  commentVotes  CommentVote[]
+  userSubs   UserSubs[] @relation("UserFollowedSubreddits")
+}
+
+model Subreddit {
+  id          String       @id @default(uuid())
+  name        String    @unique
+  description String?
+  created_at  DateTime  @default(now())
+  created_by  String
+
+  creator     User      @relation("UserSubreddits", fields: [created_by], references: [id])
+  posts       Post[]
+  followers   UserSubs[] @relation("SubredditFollowers")
+}
+
+model Post {
+  id           String          @id @default(uuid())
+  title        String
+  content      String?
+  created_at   DateTime     @default(now())
+  user_id      String
+  subreddit_id String
+
+  author       User         @relation(fields: [user_id], references: [id])
+  subreddit    Subreddit    @relation(fields: [subreddit_id], references: [id])
+  comments     Comment[]
+  votes        PostVote[]
+}
+
+model Comment {
+  id                String           @id @default(uuid())
+  content           String
+  created_at        DateTime       @default(now())
+  user_id           String
+  post_id           String
+  parent_comment_id String?
+
+  author            User           @relation(fields: [user_id], references: [id])
+  post              Post           @relation(fields: [post_id], references: [id])
+  parentComment     Comment?       @relation("CommentToReplies", fields: [parent_comment_id], references: [id])
+  replies           Comment[]      @relation("CommentToReplies")
+  votes             CommentVote[]
+}
+
+model PostVote {
+  id        String     @id @default(uuid())
+  vote_type Int
+  user_id   String
+  post_id   String
+
+  user      User    @relation(fields: [user_id], references: [id])
+  post      Post    @relation(fields: [post_id], references: [id])
+
+  @@unique([user_id, post_id])
+}
+
+model CommentVote {
+  id          String     @id @default(uuid())
+  vote_type   Int
+  user_id     String
+  comment_id  String
+
+  user        User    @relation(fields: [user_id], references: [id])
+  comment     Comment @relation(fields: [comment_id], references: [id])
+
+  @@unique([user_id, comment_id])
+}
+
+model UserSubs {
+  followed_by_id String
+  followed_to_id String
+  created_at DateTime @default(now())
+
+  followby   User      @relation("UserFollowedSubreddits", fields: [followed_by_id], references: [id])
+  subreddit  Subreddit @relation("SubredditFollowers", fields: [followed_to_id], references: [id])
+
+  @@unique([followed_by_id, followed_to_id])
+}
