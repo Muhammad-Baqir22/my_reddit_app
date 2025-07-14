@@ -96,11 +96,11 @@ model CommentVote {
 
 model UserSubs {
   followed_by_id String
-  followed_to_id String
+  subs_id String 
   created_at DateTime @default(now())
 
   followby   User      @relation("UserFollowedSubreddits", fields: [followed_by_id], references: [id])
-  subreddit  Subreddit @relation("SubredditFollowers", fields: [followed_to_id], references: [id])
+  subreddit  Subreddit @relation("SubredditFollowers", fields: [subs_id], references: [id])
 
-  @@unique([followed_by_id, followed_to_id])
+  @@unique([followed_by_id, subs_id])
 }

@@ -9,10 +9,10 @@ import { TypedResponse } from '../types/typedResponse.js';
 
 
 export const createUser = async (req: Request, res: Response) : Promise<any> => {
-    const { username, email, password_hash } = req.body;
+    const { username, email, password } = req.body;
     try {
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password_hash, saltRounds);
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
         const user = await prisma.user.create({
             data: {
                 username,
@@ -35,7 +35,7 @@ export const createUser = async (req: Request, res: Response) : Promise<any> => 
 };
 
 export const loginController = async (req: Request, res: TypedResponse<ApiResponse<AuthResponse>>) : Promise<any> => {
-    const { email, password_hash } = req.body;
+    const { email, password } = req.body;
 
     try {
         const user = await prisma.user.findUnique({
@@ -44,7 +44,7 @@ export const loginController = async (req: Request, res: TypedResponse<ApiRespon
         if (!user)
             return res.status(400).json({ success: false, message: "Not found"})
 
-        const passMatch = await bcrypt.compare(password_hash, user.password_hash);
+        const passMatch = await bcrypt.compare(password, user.password_hash);
         if (!passMatch)
             res.status(401).json({success: false , message : "Incorrect Password"});
         const token = Jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET!, { expiresIn: '2d' })

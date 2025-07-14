@@ -3,22 +3,17 @@ import prisma from "../db/prismaclient.js";
 import { Post } from "../ResponseModel/userpost.ResponseModel.js";
 import { TypedResponse } from '../types/typedResponse.js';
 import { ApiResponse } from "../ResponseModel/api.ResponseModel.js";
-import {subreddit} from '../ResponseModel/subreddit.ResponseModel.js'
-
 
 export const postController = async (req: Request, res: TypedResponse<ApiResponse<Post>>): Promise<any> => {
-    const { title, content,name  } = req.body;
+    const { title, content, name } = req.body;
     let subreddit_id = await prisma.subreddit.findUnique({
-        where: {name} 
+        where: { name }
     })
     if (!subreddit_id) {
-  return res.status(400).json({success: false, message: "Subreddit not found" });
-}
+        return res.status(400).json({ success: false, message: "Subreddit not found" });
+    }
     const userid = (req as any).user_id;
-    // const id =await  prisma.subreddit.findMany({
-    //     where:{created_by:userid}
-    // })
-   
+
     try {
         const post = await prisma.post.create({
             data: {
@@ -27,44 +22,42 @@ export const postController = async (req: Request, res: TypedResponse<ApiRespons
                 user_id: userid,
                 subreddit_id: subreddit_id.id
             }
-        }); 
+        });
 
 
 
         return res.status(200).json({ success: true, message: 'Post Ctreated', data: { title: post.title, content: post.content, user_id: post.user_id, subreddit_id: post.subreddit_id } });
-        //return res.status(200).json({success: true, message:'Post Ctreated',data:post});
-    } catch (error:any) {
-        return res.status(200).json({ success: false, message: 'Post not Ctreated',error: error.message})
+    } catch (error: any) {
+        return res.status(200).json({ success: false, message: 'Post not Ctreated', error: error.message })
 
 
     }
 }
 
-export const getPostController = async (req: Request, res: TypedResponse<ApiResponse<Post[]>>) : Promise<any> => {
-    //const id = req.params.id;
+export const getPostController = async (req: Request, res: TypedResponse<ApiResponse<Post[]>>): Promise<any> => {
 
     const userid = (req as any).user_id;
-    
+
     try {
         const subreddit = await prisma.post.findMany({
-        // where:{created_by:userid},
-        
-        // select: {
-        // id: true,
-        // title: true, 
-        // content: true
+            // where:{created_by:userid},
 
-  
+            // select: {
+            // id: true,
+            // title: true, 
+            // content: true
 
-}) 
-        if(!subreddit){
-            return res.status(404).json({success:false,message:'Post not found'})
-            }
-            return res.status(200).json({success:true,message:'Post found',data:subreddit})
 
-}catch(error:any){
-    return res.status(200).json({success:false,message:'Post not found',error:error.message});
-}
+
+        })
+        if (!subreddit) {
+            return res.status(404).json({ success: false, message: 'Post not found' })
+        }
+        return res.status(200).json({ success: true, message: 'Post found', data: subreddit })
+
+    } catch (error: any) {
+        return res.status(200).json({ success: false, message: 'Post not found', error: error.message });
+    }
 }
 
 

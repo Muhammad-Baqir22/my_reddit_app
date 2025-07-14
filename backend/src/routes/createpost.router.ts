@@ -2,9 +2,11 @@ import { Router } from "express";
 import {postController} from '../Controllers/post.controller.js'
 import {getPostController} from '../Controllers/post.controller.js'
 import {tokenVerify} from '../Middleware/auth.middleware.js';
+import postValidation from "../validators/create_post.validator.js";
+import validaterequest from "../Middleware/validateRequest.middleware.js";
 const router = Router();
 
-router.post('/createpost',tokenVerify,postController);
-router.get('/getsubreddits',tokenVerify,getPostController);
+router.post('/createpost',validaterequest(postValidation),tokenVerify,postController);
+router.get('/getposts',tokenVerify,getPostController);
 
 export default router;
