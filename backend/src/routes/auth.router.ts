@@ -6,5 +6,4 @@ import loginValidator from "../validators/login.validator.js";
 const router = Router();
 
 router.post('/login' ,validaterequest(loginValidator),loginController);
-
 export default router;
