@@ -29,8 +29,15 @@ export const postcomment = async (req: Request, res: Response): Promise<any> => 
 
 
 export const getcomments = async (req: Request, res: Response): Promise<any> => {
-    const post_id = req.body.post_id;
-    const comments = await prisma.comment.findMany({ where: { post_id } });
+    const post_id = req.params.id;
+    const comments = await prisma.comment.findMany({
+        where: { post_id },
+        include: {
+            author: {
+                select: { username: true }
+            }
+        }
+    });
     try {
         if (!comments) {
             return res.status(404).json({ success: false, message: "There is no comment in this post" })
@@ -38,24 +45,33 @@ export const getcomments = async (req: Request, res: Response): Promise<any> => 
 
         const commentObj = new Map<string, any>();
         comments.forEach(comment => {
-            commentObj.set(comment.id, { ...comment, replies: [] });
+            commentObj.set(comment.id, {
+                id: comment.id,
+                content: comment.content,
+                created_at: comment.created_at,
+                parent_comment_id: comment.parent_comment_id,
+                user_id: comment.user_id,
+                post_id: comment.post_id,
+                username: comment.author.username,
+                replies: []
+            });
         })
-        
-        const root:any[]=[];
+        const root: any[] = [];
         comments.forEach(comment => {
             const currentcomment = commentObj.get(comment.id);
-            if(comment.parent_comment_id){
+            if (comment.parent_comment_id) {
                 const parentcomment = commentObj.get(comment.parent_comment_id);
-                if(parentcomment){
+                if (parentcomment) {
                     parentcomment.replies.push(currentcomment);
                 }
-            }else{
+            } else {
                 root.push(currentcomment);
             }
-    })
+        })
 
         return res.status(200).json({ success: true, message: "All post comment", data: root })
     } catch (error: any) {
         return res.status(500).json({ success: false, message: error.message })
     }
 }
+

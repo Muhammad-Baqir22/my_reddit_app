@@ -5,7 +5,7 @@ import {getcomments} from '../Controllers/comment.controller.js'
 
 const router = Router();
 
-router.post('/addcomment',tokenVerify,postcomment);
-router.get('/getcomment',tokenVerify,getcomments);
+router.post('/',tokenVerify,postcomment);
+router.get('/:id',tokenVerify,getcomments);
 
 export default router;
