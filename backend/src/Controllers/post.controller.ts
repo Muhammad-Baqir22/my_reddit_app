@@ -5,6 +5,7 @@ import { TypedResponse } from '../types/typedResponse.js';
 import { ApiResponse } from "../ResponseModel/api.ResponseModel.js";
 
 
+
 export const postController = async (req: Request, res: TypedResponse<ApiResponse<Post>>): Promise<any> => {
     const { title, content, id } = req.body;
     const userid = (req as any).user_id;
@@ -52,6 +53,46 @@ export const getuserpost = async (req: Request, res: TypedResponse<ApiResponse<P
     } catch (error: any) {
         return res.status(400).json({ success: false, message: "User post not found", error: error })
     }
+}
+
+export const post = async (req: Request, res: TypedResponse<ApiResponse<Post>>): Promise<any> => {
+    const post_id = req.params.id;
+    try {
+        const post = await prisma.post.findUnique({
+            where: { id: post_id },
+
+        })
+        if (!post) {
+            return res.status(404).json({ success: false, message: "Post not found" })
+        }
+        const comments = await prisma.comment.findMany({ where: { post_id }, orderBy: { created_at: "asc" } });
+        const commentObj = new Map<string, any>();
+        comments.forEach((comment) => {
+            commentObj.set(comment.id, { ...comment, replies: [] });
+        })
+
+        const root: any[] = [];
+        comments.forEach((comment) => {
+            const currentcomment = commentObj.get(comment.id);
+            if (comment.parent_comment_id) {
+                const parentcomment = commentObj.get(comment.parent_comment_id);
+                if (parentcomment) {
+                    parentcomment.replies.push(currentcomment);
+                }
+            } else {
+                root.push(currentcomment);
+            }
+        })
+        return res.status(200).json({
+            success: true, message: "Post found",
+            data: {
+                title: post.title, content: post.content, user_id: post.user_id, subreddit_id: post.subreddit_id, comment: root
+            }
+        });
+    } catch (error: any) {
+        return res.status(400).json({ success: false, message: "Post not found" })
+    }
+
 }
 
 

@@ -5,10 +5,13 @@ import {getuserpost} from '../Controllers/post.controller.js'
 import {tokenVerify} from '../Middleware/auth.middleware.js';
 import postValidation from "../validators/create_post.validator.js";
 import validaterequest from "../Middleware/validateRequest.middleware.js";
+import {post} from '../Controllers/post.controller.js'
 const router = Router();
 
-router.post('/createpost',validaterequest(postValidation),tokenVerify,postController);
-router.get('/getposts',tokenVerify,getPostController);
-router.get('/getuserpost',tokenVerify,getuserpost);
+router.post('/',validaterequest(postValidation),tokenVerify,postController);
+router.get('/',tokenVerify,getPostController);
+router.get('/user',tokenVerify,getuserpost);
+router.get('/post/:id',tokenVerify,post)
+// "/post/:id"
 
 export default router;

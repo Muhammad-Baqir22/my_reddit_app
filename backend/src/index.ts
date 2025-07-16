@@ -2,9 +2,10 @@ import express from 'express';
 
 import userRouter from './routes/user.routes.js'; 
 import authRouter from './routes/auth.router.js'; 
-import createpost from './routes/createpost.router.js'
+import post from './routes/post.router.js'
 import subreddit from './routes/subreddit.router.js';
-import subsfollow from './routes/subsfollow.router.js'
+//import subsfollow from './routes/subsfollow.router.js'
+import commentRouter from './routes/comment.router.js'
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -16,9 +17,10 @@ app.use(express.json());
 
 app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter);
-app.use('/api/createpost',createpost);
+app.use('/api/post',post);
 app.use('/api/subreddit',subreddit);
-app.use('/api/subsfollow',subsfollow);
+//app.use('/api/subsfollow',subsfollow);
+app.use('/api/comment',commentRouter);
 
 
 
