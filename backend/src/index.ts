@@ -6,6 +6,7 @@ import post from './routes/post.router.js'
 import subreddit from './routes/subreddit.router.js';
 //import subsfollow from './routes/subsfollow.router.js'
 import commentRouter from './routes/comment.router.js'
+import voteRouter from './routes/vote.router.js'
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -19,8 +20,8 @@ app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/post',post);
 app.use('/api/subreddit',subreddit);
-//app.use('/api/subsfollow',subsfollow);
 app.use('/api/comment',commentRouter);
+app.use('/api/vote',voteRouter)
 
 
 

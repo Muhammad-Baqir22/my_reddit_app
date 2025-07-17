@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodObject, ZodRawShape, ZodError } from "zod";
+import { ZodObject, ZodRawShape } from "zod";
 
 const validaterequest = (schema: ZodObject<ZodRawShape>) =>
     (req: Request, res: Response, next: NextFunction): void => {

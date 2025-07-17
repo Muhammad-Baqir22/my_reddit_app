@@ -1,13 +1,16 @@
 import { Request, Response } from "express";
 import prisma from "../db/prismaclient.js";
-import { map, success } from "zod";
+import { TypedResponse } from '../types/typedResponse.js';
+import { ApiResponse } from "../ResponseModel/api.ResponseModel.js";
+import  {comment}  from "../ResponseModel/comment.ResponseModel.js";
 
-export const postcomment = async (req: Request, res: Response): Promise<any> => {
+
+export const postcomment = async (req: Request, res: TypedResponse<ApiResponse<comment>>): Promise<any> => {
     const { content, post_id, parent_id } = req.body;
     const user_id = (req as any).user_id;
     const check_post = await prisma.post.findUnique({ where: { id: post_id } })
     if (!check_post) {
-        return res.status(404).json({ message: "Post not found" })
+        return res.status(404).json({success:false, message: "Post not found" })
     }
     try {
         const comment = await prisma.comment.create({
@@ -18,17 +21,17 @@ export const postcomment = async (req: Request, res: Response): Promise<any> => 
                 parent_comment_id: parent_id && parent_id !== "" ? parent_id : null
             }
         });
-        return res.status(201).json({ message: "Comment created successfully", comment });
+        return res.status(201).json({ success:true,message: "Comment created successfully",data: comment });
     } catch (error: any) {
         if (error.code == 'P2003') {
-            return res.status(400).json({ message: "Parent id is not correct" })
+            return res.status(400).json({success:false, message: "Parent id is not correct" })
         }
-        return res.status(500).json({ message: error.message })
+        return res.status(500).json({ success:false,message: error.message })
     }
 }
 
 
-export const getcomments = async (req: Request, res: Response): Promise<any> => {
+export const getcomments = async (req: Request, res:TypedResponse<ApiResponse<comment[]>>): Promise<any> => {
     const post_id = req.params.id;
     const comments = await prisma.comment.findMany({
         where: { post_id },
