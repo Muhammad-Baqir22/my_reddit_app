@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import prisma from '../db/prismaclient.js'
-// import { success } from "zod";
-export const votePost = async (req: Request, res: Response) => {
+import { TypedResponse } from '../types/typedResponse.js';
+import { ApiResponse } from "../ResponseModel/api.ResponseModel.js";
+import {Vote} from '../ResponseModel/vote.ResponseModel.js'
+
+export const votePost = async (req: Request, res: TypedResponse<ApiResponse<Vote>>): Promise<any> => {
     const { vote_type, post_id } = req.body;
     const user_id = (req as any).user_id;
-    if (![1, -1, 0].includes(vote_type)) {
-        return res.status(400).json({ message: "Invalid vote type" });
-    }
     try {
         const existingVote = await prisma.postVote.findUnique({
             where: {
@@ -16,7 +16,6 @@ export const votePost = async (req: Request, res: Response) => {
                 }
             }
         })
-
         if (existingVote) {
             if (vote_type === 0) {
                 await prisma.postVote.delete({
@@ -27,7 +26,6 @@ export const votePost = async (req: Request, res: Response) => {
                         }
                     }
                 })
-                
             }
             else {
                 await prisma.postVote.update({
@@ -40,10 +38,7 @@ export const votePost = async (req: Request, res: Response) => {
                     data: {
                         vote_type,
                     }
-
                 })
-                
-
             }
         } else {
             await prisma.postVote.create({
@@ -54,17 +49,77 @@ export const votePost = async (req: Request, res: Response) => {
                 }
             })
         }
-        const sumvote = await prisma.postVote.aggregate({
-                where: {
-                    post_id
-                },
-                _sum: {
-                    vote_type: true
-                }
-
-            })
-            return res.status(200).json({ success: true, message: "Vote added successfully",sumvote:sumvote._sum.vote_type })
+        // const sumvote = await prisma.postVote.aggregate({
+        //         where: {
+        //             post_id
+        //         },
+        //         _sum: {
+        //             vote_type: true
+        //         }
+        //     })
+        return res.status(200).json({ success: true, message: "Vote added successfully" })
     } catch (error: any) {
         return res.status(500).json({ success: false, message: error.message })
+    }
+}
+
+export const commentVote = async (req: Request, res: TypedResponse<ApiResponse<Vote>>): Promise<any> => {
+    const {  comment_id, vote_type } = req.body;
+    const user_id = (req as any).user_id;
+    try {
+        const comment = await prisma.comment.findUnique({
+            where: {
+                id: comment_id
+            }
+        })
+        if (!comment) {
+            return res.status(404).json({ success: false, message: "Comment not found" })
+        }
+        const excisting_vote = await prisma.commentVote.findUnique({
+            where: {
+                user_id_comment_id: {
+                    user_id,
+                    comment_id
+                }
+            }
+        })
+        if (excisting_vote) {
+            if (vote_type === 0) {
+                await prisma.commentVote.delete({
+                    where: {
+                        user_id_comment_id: {
+                            user_id,
+                            comment_id
+                        }
+                    }
+                })
+                return res.status(200).json({ success: true, message: "Vote removed successfully" })
+            } else {
+                await prisma.commentVote.update({
+                    where: {
+                        user_id_comment_id: {
+                            user_id,
+                            comment_id
+                        }
+                    },
+                    data: {
+                        vote_type: vote_type
+                    }
+                })
+                return res.status(200).json({ success: true, message: "Vote updated successfully" })
+            }
+
+        } else {
+            await prisma.commentVote.create({
+                data: {
+                    user_id,
+                    comment_id,
+                    vote_type
+                }
+            })
+            return res.status(200).json({ success: true, message: "Vote added successfully" })
+        }
+    } catch (error: any) {
+        return res.status(500).json({success:false, message: error.message })
     }
 }
